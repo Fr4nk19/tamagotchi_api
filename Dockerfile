@@ -12,9 +12,11 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_pgsql pgsql zip mbstring gd bcmath \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache mod_rewrite and ensure only one MPM is loaded
+# Enable Apache mod_rewrite and ensure only one MPM is loaded.
+# We remove ALL mpm_*.load and mpm_*.conf symlinks first so no stale
+# MPM remains enabled, then enable only mpm_prefork.
 RUN a2enmod rewrite \
-    && a2dismod mpm_event mpm_worker 2>/dev/null || true \
+    && rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf \
     && a2enmod mpm_prefork
 
 # Set Apache document root to Laravel's public directory
